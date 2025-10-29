@@ -1,0 +1,214 @@
+{
+  "name": "AI assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -176,
+        -16
+      ],
+      "id": "4cb1cd90-5baa-4ad7-aacf-2560cfc2e3d6",
+      "name": "Telegram Trigger",
+      "webhookId": "d716b188-d669-47b1-819e-c846796be51b",
+      "credentials": {
+        "telegramApi": {
+          "id": "NLRsE4Zem5hemEtJ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "You are a helpful AI assistant with access to my Contact List tool. You assist me in writing and sending emails to my contacts, signing them with \"Best regards, Md Shamiul Islam.\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        32,
+        -16
+      ],
+      "id": "7b840265-95da-4d5b-a476-a17bff4cdb13",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatCohere",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        192
+      ],
+      "id": "832087c6-4469-4e69-9ebd-6e58e06cd84d",
+      "name": "Cohere Chat Model",
+      "credentials": {
+        "cohereApi": {
+          "id": "mEuCVlBLkcsZCpUf",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        -16
+      ],
+      "id": "99a2cbe9-b42d-4271-a723-2f40f9489532",
+      "name": "Send a text message",
+      "webhookId": "a93fa2ca-565c-4e4a-9183-e19ec4c6a138",
+      "credentials": {
+        "telegramApi": {
+          "id": "NLRsE4Zem5hemEtJ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "11V-NhGP0FVfGG38tnP_T1TLSdYYzrl0yS1eCXs4IEdg",
+          "mode": "list",
+          "cachedResultName": "rahman",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11V-NhGP0FVfGG38tnP_T1TLSdYYzrl0yS1eCXs4IEdg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11V-NhGP0FVfGG38tnP_T1TLSdYYzrl0yS1eCXs4IEdg/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        320,
+        192
+      ],
+      "id": "6aba3362-d7cd-4ba3-8c30-13566e2dd74b",
+      "name": "Contact List",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qeGPYLaIgvyclcpy",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "senderName": "Best regards, Md Shamiul Islam"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        192,
+        192
+      ],
+      "id": "4c3fae2c-abd2-4f4e-8b29-c0795d2afbd6",
+      "name": "Send a message in Gmail",
+      "webhookId": "9f550839-234d-4e18-8454-7c33e524b2aa",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Bc2gkSoH7iYBdJWe",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cohere Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contact List": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d4569b8d-7905-462d-9ab8-f74da586d776",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "486bc1586067877df35806a1aa902f512a254fd10f9dd5286a48e86b2c552759"
+  },
+  "id": "SOskab7Zg5Buv6rn",
+  "tags": []
+}
