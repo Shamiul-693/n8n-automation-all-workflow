@@ -1,0 +1,359 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        16
+      ],
+      "id": "c828bd83-68c3-4651-940b-9fa3cb189a02",
+      "name": "WhatsApp Trigger",
+      "webhookId": "94c97e5c-56b7-4915-9020-50ff46c327df",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "YTRaH26XARIkELKP",
+          "name": "WhatsApp OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messages[0].text.body }}",
+        "options": {
+          "systemMessage": "You are a smart food ordering assistant for \"MDA Restaurant\".  \nTalk like a WhatsApp food delivery bot.\n\nRules:\n1. On greeting (hi, hello) → say:\n   \"Welcome to MDA Restaurant 🍽️  \n   How can I help you today?  \n   - 🛒 Place an order  \n   - ℹ️ FAQ / Info  \n   - 📦 Check order / stock\"\n\n2. For ordering:\n   - Ask name → food item → quantity\n   - Call the Google Sheets Tool \"Check Inventory\" to verify stock.\n   - If available: reply \"Your order for *[item]* (x quantity) is confirmed ✅\"\n   - If not: reply \"Sorry, *[item]* is out of stock ❌. Available: [list items]\"\n   - Always add confirmed orders to the Orders sheet.\n\n3. For FAQ: short, simple answers (delivery time, payment, hours)\n\n4. For check order/stock:\n   - Call Sheets to look up status or available quantity\n   - Reply with a simple status update\n\n5. For cancel requests:\n   \"Sorry 🙏 I cannot cancel orders directly.  \n    Please call the restaurant owner at +8801794676892\"\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "aee193ea-e605-4e41-8804-2ec7de0f5d08",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "11V-NhGP0FVfGG38tnP_T1TLSdYYzrl0yS1eCXs4IEdg",
+          "mode": "list",
+          "cachedResultName": "rahman",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11V-NhGP0FVfGG38tnP_T1TLSdYYzrl0yS1eCXs4IEdg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 145690026,
+          "mode": "list",
+          "cachedResultName": "FAQ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11V-NhGP0FVfGG38tnP_T1TLSdYYzrl0yS1eCXs4IEdg/edit#gid=145690026"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        128,
+        240
+      ],
+      "id": "76495078-c451-416d-99e9-fde0a445b826",
+      "name": "FAQ",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vFfWRvNpllQNfEie",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "11V-NhGP0FVfGG38tnP_T1TLSdYYzrl0yS1eCXs4IEdg",
+          "mode": "list",
+          "cachedResultName": "rahman",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11V-NhGP0FVfGG38tnP_T1TLSdYYzrl0yS1eCXs4IEdg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 321690912,
+          "mode": "list",
+          "cachedResultName": "Orders",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11V-NhGP0FVfGG38tnP_T1TLSdYYzrl0yS1eCXs4IEdg/edit#gid=321690912"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Customer Name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Customer_Name', ``, 'string') }}",
+            "Food Item": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Food_Item', ``, 'string') }}",
+            "Quantity Ordered": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Quantity_Ordered', ``, 'string') }}",
+            "Order Date": "={{ $now.format('yyyy-MM-dd hh-mm-ss a') }}",
+            "Status": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Status', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Customer Name",
+              "displayName": "Customer Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Food Item",
+              "displayName": "Food Item",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Quantity Ordered",
+              "displayName": "Quantity Ordered",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Order Date",
+              "displayName": "Order Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        224
+      ],
+      "id": "3da9c5d6-18be-45fe-a230-273869530db3",
+      "name": "Orders",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vFfWRvNpllQNfEie",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "11V-NhGP0FVfGG38tnP_T1TLSdYYzrl0yS1eCXs4IEdg",
+          "mode": "list",
+          "cachedResultName": "rahman",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11V-NhGP0FVfGG38tnP_T1TLSdYYzrl0yS1eCXs4IEdg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "inventory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11V-NhGP0FVfGG38tnP_T1TLSdYYzrl0yS1eCXs4IEdg/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        224
+      ],
+      "id": "234717a5-b494-4d2a-8091-c7d23b3ca810",
+      "name": "Inventory",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vFfWRvNpllQNfEie",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "761789927028762",
+        "recipientPhoneNumber": "+8801794676892",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        544,
+        -32
+      ],
+      "id": "6a4bbd4b-a016-4016-9d3a-6fb7c53a451c",
+      "name": "Send message",
+      "webhookId": "4e2c48fd-bf8b-4e07-b53a-5016f5bf6f77",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "7xe2eWKp8PUUcfuP",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('WhatsApp Trigger').item.json.contacts[0].profile.name + ' says: ' + $('WhatsApp Trigger').item.json.messages[0].text.body }}\n",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -48,
+        176
+      ],
+      "id": "e0c95ea1-a921-425b-8140-d6ec72544b2a",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatCohere",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        208
+      ],
+      "id": "857efffd-de87-4067-baa4-dbb8ed1d91db",
+      "name": "Cohere Chat Model",
+      "credentials": {
+        "cohereApi": {
+          "id": "L3WR9WcXHcdU3PBY",
+          "name": "CohereApi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FAQ": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Orders": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inventory": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cohere Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "535caa39-ea5e-4eb3-9d9a-84b7be931611",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3300170cf691a0553bcd60e5c745568b1d98749de68e2701b09bc89d53e428da"
+  },
+  "id": "An4zxvLp3ibJReFO",
+  "tags": []
+}
