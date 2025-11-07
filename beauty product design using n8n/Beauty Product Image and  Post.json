@@ -1,0 +1,277 @@
+{
+  "name": "Beauty Product Image and  Post",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Beauty product ",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Product name",
+              "placeholder": "product name"
+            },
+            {
+              "fieldLabel": "Product Description",
+              "placeholder": "product description"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -384,
+        -64
+      ],
+      "id": "8ceac273-e7d5-4906-afe8-df565320c75f",
+      "name": "On form submission",
+      "webhookId": "211c951b-13ec-476f-b9f6-702d5dd335aa"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n\"brandName\": \"Fashionpallet\",\n\"brandTone\": \"Luxury skincare — clean, calm, and elegant.\",\n\"colorTheme\": \"Deep sea blues, emerald greens, warm golds, and beige.\",\n\"backgroundStyle\": \"Soft gradients or realistic textures like water, marble, or satin.\",\n\"lightingStyle\": \"Always soft, diffused lighting with a subtle spotlight effect and gentle reflections.\",\n\"productPlacement\": \"The product should feel grounded, not floating — placed on surfaces like trays, marble slabs, or fabric. Props like flower petals, ribbons, or boxes can be used sparingly.\",\n\"typographyStyle\": \"Use serif fonts in uppercase for titles. For secondary text, use thin script or modern sans-serif. Font color should be white, soft gold, or dark green — never harsh.\",\n\"compositionGuidelines\": \"Maintain clean symmetry or elegant off-center balance. Always leave intentional space around the product. Keep supporting elements minimal and refined.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        -64
+      ],
+      "id": "4f168183-206c-4fc6-995d-96a46984090b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $('On form submission').item.json['Product name'] }}",
+        "driveId": {
+          "__rl": true,
+          "value": "1EalAfXNFS8MT62w-MSgPghQJ4LfyhJfE",
+          "mode": "id"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        32,
+        -64
+      ],
+      "id": "a90bbcab-5884-4be7-9ae1-ea0f095235e2",
+      "name": "Create folder",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "qrf5V8eEHZ2o2ZgG",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=ProductName: {{ $('On form submission').item.json['Product name'] }}\nproductDescription: {{ $('On form submission').item.json['Product Description'] }}\nbrandName: {{ $('Edit Fields').item.json.brandName }}\nbrandTone: {{ $('Edit Fields').item.json.brandTone }}\ncolorTheme: {{ $('Edit Fields').item.json.colorTheme }}\nbackgroundStyle: {{ $('Edit Fields').item.json.backgroundStyle }}\nlightingStyle: {{ $('Edit Fields').item.json.lightingStyle }}\nproductPlacement: {{ $('Edit Fields').item.json.productPlacement }}\ntypographyStyle: {{ $('Edit Fields').item.json.typographyStyle }}\ncompositionGuidelines: {{ $('Edit Fields').item.json.compositionGuidelines }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a luxury product photographer and stylist.\n\nYour task is to suggest creative visual styling elements for 1 product launch assets. The product is from a premium skincare brand with a clean, minimal, elegant tone — but it’s okay to be bold and attention-grabbing where suitable.\n\nEach asset must:\n- Feel part of the same brand campaign\n- Use varied styling (not repetitive)\n- Be visually differentiated based on its platform and purpose\n\nReturn a JSON object with the following structure:\n\nFor each asset, vary the:\n- backgroundTone → must be visually attractive and brand-aligned\n- surfaceType → creative but not distracting\n- accentProp → feminine, luxurious, and elegant (avoid droplets or overused props)\n- lighting → varies by mood or asset format\n- cameraAngle → changes perspective and storytelling\n- Overlay Text - a short yet attractive copy. (It could be a CTA, a launch offer, a normal text etc.) Avoid using the tagline. Make it sound as if it is coming from a very luxurious setting.\n\nUse tasteful elements like marble, linen, satin, ribbon, flowers, sculptural trays, and glass — but ensure each scene feels premium and styled intentionally.\n\nDo **not** repeat the same exact prop, background, or layout across assets.\n\nOnly respond with the structured JSON output.\n\n-----\n\n1. Instagram Post\n- Purpose: Feed-worthy hero image for social media\n- Visual Style: Polished, balanced composition. Clear product focus. Elegant props. Can be bold or eye-catching."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        -64
+      ],
+      "id": "480faabf-45dd-4e61-8ed3-e8c89edc34e8",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\"assets\": [\n    {\n    \"assetType\": \"Instagram Post\",\n    \"backgroundTone\": \"soft blush gradient\",\n    \"surfaceType\": \"satin draped cloth\",\n    \"accentProp\": \"gold-trimmed ribbon\",\n    \"lighting\": \"warm spotlight from the side\",\n    \"cameraAngle\": \"45-degree angle\",\n    \"overlayText\": \"Glow deeper. Shine brighter.\"\n    }\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        96
+      ],
+      "id": "fe27f9ca-6cce-4737-b8b3-2511ac7a8df3",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "=Create a square (1:1) photorealistic **Instagram Post** visual for the skincare product {{ $('On form submission').item.json['Product name'] }} from {{ $('Edit Fields').item.json.brandName }}.\nThis is the **hero asset** in the product launch — it should feel bold, polished, and visually iconic. The composition must be clean, centered, and brand-first, setting the tone for the entire campaign.\nThe product image is provided — do not alter it. Integrate it into a stylized visual scene.\n\nUse a {{ $json.output.assets[0].backgroundTone }} background that reflects natural elegance — this may include textures like fabric folds, water ripples, or gradient light. Place the product on a {{ $json.output.assets[0].surfaceType }} such as stone, satin, or sculpted glass.\n\nIntroduce a complementary accent prop like a {{ $json.output.assets[0].accentProp }} to enrich the visual story. Ensure props enhance, not clutter.\n\nApply {{ $json.output.assets[0].lighting }} to add dimension, and capture the image from a {{ $json.output.assets[0].cameraAngle }} — this may be slightly off-center, angled, or from above to create depth.\n\nFollow the brand’s identity and styling rules:\n- Tone: {{ $('Edit Fields').item.json.brandTone }}\n- Color palette: {{ $('Edit Fields').item.json.colorTheme }}\n- Typography style (for brand reference only): {{ $('Edit Fields').item.json.typographyStyle }}\n- Product placement rules: {{ $('Edit Fields').item.json.productPlacement }}\n- Composition: {{ $('Edit Fields').item.json.compositionGuidelines }}\n\nFeel free to include overlay text - \"{{ $('AI Agent').item.json.output.assets[0].overlayText }}\". Ensure it is clearly legible, elegantly styled, and placed harmoniously within the composition.\n\nThis should be a clean, emotionally resonant product visual — worthy of a high-end Instagram or print campaign.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        576,
+        -64
+      ],
+      "id": "21a155ad-bc7a-48ab-b950-d6e1d28a8e5d",
+      "name": "Generate an image",
+      "credentials": {
+        "openAiApi": {
+          "id": "aKRKEYznIATQe3Oq",
+          "name": "OpenAi account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        144
+      ],
+      "id": "abed04f9-0415-47fc-b782-0300d7fe8c90",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "aKRKEYznIATQe3Oq",
+          "name": "OpenAi account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "={{ $('On form submission').item.json['Product name'] }}",
+        "driveId": {
+          "__rl": true,
+          "value": "={{ $('Create folder').item.json.id }}",
+          "mode": "id"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        784,
+        -64
+      ],
+      "id": "df547141-4e75-4987-9c25-c9d6c7896a7f",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "qrf5V8eEHZ2o2ZgG",
+          "name": "Google Drive account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Create folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create folder": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "50d52d49-fdcc-4709-abbf-290ecf55d192",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7309d850899abbe1262526ca8edf6ae1478b4c238b5881fb5c04cc896d1bef9f"
+  },
+  "id": "IMQnR8ahTZRiqigi",
+  "tags": []
+}
