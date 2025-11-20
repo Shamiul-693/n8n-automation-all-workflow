@@ -1,0 +1,617 @@
+{
+  "name": "Create Shorts from Long Videos",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -928,
+        -176
+      ],
+      "id": "4544c9dc-2c10-4a52-9770-8f095753f456",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1OX0mUI3Vsd4gtBBCu_DUkQfJSHcsHl6NzWLxG_rSP5E",
+          "mode": "list",
+          "cachedResultName": "long to short video",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OX0mUI3Vsd4gtBBCu_DUkQfJSHcsHl6NzWLxG_rSP5E/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OX0mUI3Vsd4gtBBCu_DUkQfJSHcsHl6NzWLxG_rSP5E/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": "pending"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -672,
+        -176
+      ],
+      "id": "434bcda0-5508-4216-a22b-f83f7d996d6c",
+      "name": "get long video URL",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uDF95148dSogfbsb",
+          "name": "Google Sheets account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.klap.app/v2/tasks/video-to-shorts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n\"source_video_url\": \"{{ $json.longvideo }}\",\n\"language\": \"en\",\n\"max_duration\": 30,\n\"max_clip_count\": 5\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -464,
+        -176
+      ],
+      "id": "85417711-6167-4b09-96c1-8745122d1093",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YvgEauCWgp5xKXTd",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -256,
+        -176
+      ],
+      "id": "50d769b1-98bf-44d0-8167-e26b75dbd5a3",
+      "name": "Wait",
+      "webhookId": "3ecfead8-06ae-418d-82c4-4089456083f0"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.klap.app/v2/tasks/{{ $json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -48,
+        -176
+      ],
+      "id": "b9965fb1-8e32-45f6-aca5-820caea581c3",
+      "name": "get status",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YvgEauCWgp5xKXTd",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3715382a-6f28-4db2-a19e-e8c7f9ac069b",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "ready",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -896,
+        64
+      ],
+      "id": "ccef7e22-c5c9-4c1a-8565-4467eaf90c09",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.klap.app/v2/projects/{{ $json.output_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -464,
+        64
+      ],
+      "id": "26baa62e-db80-4df6-a0cd-61076ff0c537",
+      "name": "get short details",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YvgEauCWgp5xKXTd",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.klap.app/v2/projects/{{ $json.folder_id }}/{{ $json.id }}/exports",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"preset_id\": \"123\",\n  \"video_id\": \"{{ $json.id }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -176,
+        64
+      ],
+      "id": "075cce83-de60-4854-b198-1bf91f4c46e5",
+      "name": "Export details",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YvgEauCWgp5xKXTd",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        80,
+        80
+      ],
+      "id": "232b5293-fb86-46f5-9f03-50cf18203318",
+      "name": "Wait1",
+      "webhookId": "4492cc86-c1c8-4945-ac20-da4cd365fa3d"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.klap.app/v2/projects/{{ $json.folder_id }}/{{ $json.id }}/exports/{{ $json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        352,
+        80
+      ],
+      "id": "87edd812-dc98-4a17-bcfc-bee9e6029c8b",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YvgEauCWgp5xKXTd",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "687610a2-adb9-4f44-b813-e72055af88b4",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "ready",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        80
+      ],
+      "id": "2cfca092-be00-468a-b621-523a4939ed01",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1OX0mUI3Vsd4gtBBCu_DUkQfJSHcsHl6NzWLxG_rSP5E",
+          "mode": "list",
+          "cachedResultName": "long to short video",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OX0mUI3Vsd4gtBBCu_DUkQfJSHcsHl6NzWLxG_rSP5E/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 577726414,
+          "mode": "list",
+          "cachedResultName": "shortsdata",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OX0mUI3Vsd4gtBBCu_DUkQfJSHcsHl6NzWLxG_rSP5E/edit#gid=577726414"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "shorts_link": "={{ $('If1').item.json.src_url }}",
+            "tiktok_captions": "={{ $('get short details').item.json.publication_captions.tiktok }}",
+            "instagram_captions": "={{ $('get short details').item.json.publication_captions.instagram }}",
+            "youtube_captions": "={{ $('get short details').item.json.publication_captions.youtube }}",
+            "linkdin_captions": "={{ $('get short details').item.json.publication_captions.linkedin }}",
+            "publishins _status": "done"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "shorts_link",
+              "displayName": "shorts_link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tiktok_captions",
+              "displayName": "tiktok_captions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "instagram_captions",
+              "displayName": "instagram_captions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "youtube_captions",
+              "displayName": "youtube_captions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkdin_captions",
+              "displayName": "linkdin_captions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "publishins _status",
+              "displayName": "publishins _status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        960,
+        160
+      ],
+      "id": "a751707f-354c-41ad-b77b-d8d4313c61f4",
+      "name": "Append data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uDF95148dSogfbsb",
+          "name": "Google Sheets account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1OX0mUI3Vsd4gtBBCu_DUkQfJSHcsHl6NzWLxG_rSP5E",
+          "mode": "list",
+          "cachedResultName": "long to short video",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OX0mUI3Vsd4gtBBCu_DUkQfJSHcsHl6NzWLxG_rSP5E/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OX0mUI3Vsd4gtBBCu_DUkQfJSHcsHl6NzWLxG_rSP5E/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{$('get long video URL').item.json.row_number}}",
+            "status": "done"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "longvideo",
+              "displayName": "longvideo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        784,
+        -48
+      ],
+      "id": "02b97707-720a-4f29-bc92-9c571cc8a5dc",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uDF95148dSogfbsb",
+          "name": "Google Sheets account 4"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "get long video URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get long video URL": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "get status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get status": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "get short details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get short details": {
+      "main": [
+        [
+          {
+            "node": "Export details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Export details": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Append data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "370fba26-37ad-4085-96be-ac0f11a6f41b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7309d850899abbe1262526ca8edf6ae1478b4c238b5881fb5c04cc896d1bef9f"
+  },
+  "id": "G4UJ4oJFrMSrnSqB",
+  "tags": []
+}
