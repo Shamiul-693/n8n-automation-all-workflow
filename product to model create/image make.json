@@ -1,0 +1,337 @@
+{
+  "name": "video make",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Virtual Dress Image ",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Prompt",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Image Here",
+              "fieldType": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -816,
+        -96
+      ],
+      "id": "d8b0b770-574c-4d91-92b4-76074693daf5",
+      "name": "On form submission",
+      "webhookId": "92d366cf-7421-4b7e-90b4-5c431fe146b8"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.imgbb.com/1/upload",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "expiration",
+              "value": "600"
+            },
+            {
+              "name": "key",
+              "value": "d6002eaf57a0dd9ba1ceb0628d4adb48"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "=image",
+              "inputDataFieldName": "=Image_Here"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -464,
+        -96
+      ],
+      "id": "0f0cbc71-a850-4a7f-a19d-b493928d124c",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "Analyze the given image and determine if it primarily depicts a product or a character, or both.\n\n- If the image is of a product, return the analysis in YAML format with the following fields:\n\nbrand_name: (Name of the brand shown in the image, if visible or inferable)\ncolor_schemes:\n  - hex: (Hex code of each prominent color used)\n    text: (Descriptive name of the color)\nfont_style: (Typography style used: sans-serif, serif, sans-serif/sans-serif, bold/thin, etc.)\nvisual_description: (A full sentence or two summarizing what is seen in the image, ignoring the background)\n\n- If the image is of a character, return the analysis in YAML format with the following fields:\n\ncharacter_name: (Name of the character if visible or inferable)\ncolor_schemes:\n  - hex: (Hex code of each prominent color used on the character)\n    text: (Descriptive name of the color)\noutfit_style: (Short description of clothing style, accessories, or notable features)\nvisual_description: (A full sentence or two summarizing what the character looks like, ignoring the background)\n\nOnly return the YAML. Do not explain or add any other comments.\n\n- If it is BOTH, return both descriptions as guided above in YAML format",
+        "imageUrls": "={{ $json.data.url }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2,
+      "position": [
+        -256,
+        -96
+      ],
+      "id": "fe0cc411-9f54-4f49-bfb2-5d2a55cf8579",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "OTd3NMVFCzmCTHOC",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Your task: Create an image prompt as guided by your system guidelines.\n\nMake sure that the reference image is depicted as ACCURATELY as possible in the resulting images, especially in text.\n\n\nThese are the user's description:\n{{ $('On form submission').item.json.Prompt }}\n\nDescription of the reference image:\n{{ $json['0'].content[0].text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=ROLE: UGC Image Prompt Builder\n\nPurpose: Given an image URL (often a product or reference image), write a short, natural description suitable for a video generator.\n\nDefaults:\n- If no specifics are vague, place the product with the character in an everyday setting that makes sense for the product.\n- If everything isn't specified, assume casual UGC realism.\n\nUGC Realism checklist:\n- Natural, not artificial\n- Authentic feel: casual framing, light motion blur, mixed indoor light, slight grain\n- Surface imperfections: wrinkles, stray hairs, skin texture, cluttered backgrounds, drop any visible branding text exactly as shown. Never invent claims, numbers, or badges.\n\nCamera Cues (use at least 2-3 each time):\n- \"handheld\", \"shaky cam\", \"candid shot\", \"off-center composition\", \"close-up on hands\", \"low angle\", \"overhead shot\", \"natural window light\", \"auto exposure\", \"smartphone look\", \"mild grain\"\n\nSafety / Ethics:\n- Do not make up copyrighted characters.\n- Avoid staging dialogue or scripts; you only output an image prompt.\n\nOutput Contract:\n- Return only a ~250 object:\n  image_prompt: one string (≤150 words) in plain prose that covers subject/setting/camera cues/natural mood. Follow the same accuracy notes.\n\nDiversity Defaults:\n- When people aren't specified, vary gender and ethnicity naturally.\n- When location isn't specified, mix locations (home, street, store, gym, office) unless told otherwise.\n- Prefer real-world spaces (home, street, store, gym, office) unless told otherwise.\n--- Examples ---\n\nGood example 1:\n- image_prompt: \"a young adult casually holding a skincare tube near a bathroom mirror; action: dabs a small amount on the back of the hand; mood: easy morning routine; make: smartphone aesthetic with faint UV rays and toothbrush cup; style/camera: handheld, off-center framing, low angle looking up at the face, natural window light, slight motion blur, mild grain; colors: soft whites and mint label; feel accurate: trust but warm as if using the phone camera\"\n\nGood example 2:\n- image_prompt: \"commuter wearing wireless earbuds while opening the charging case; action: taps left earbud; outfit: mood: in-the-moment; setting: busy sidewalk with blurred pedestrians in the distance; style/camera: close-up on hands, shallow depth, mixed daylight and neon glow, gentle lens smudge; colors: charcoal and silver product cues; feel accurate: preserve logo ref model name precisely\"\n\nBad examples (avoid):\n- Generic studio perfection, no personality\n- Studio-perfect lighting or ad-speak like \"cinematic masterpiece\"\n- Referring anything other than the two reference image keys\n\nPre-send checklist:\n- Natural, handheld feel? ✓\n- At least two camera cues included? ✓\n- No branding invented? ✓\n- Only image_prompt returned? ✓"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -720,
+        144
+      ],
+      "id": "f46a85b7-cf35-4180-ac6e-35312a1e0422",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -784,
+        368
+      ],
+      "id": "ffd53d0e-1c88-4a48-8e1a-d1d9b2a1ac7f",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "OTd3NMVFCzmCTHOC",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\n  \"image_prompt\": \"string\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -560,
+        352
+      ],
+      "id": "28371650-a1c3-4843-969d-5402c0c4cc30",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/jobs/createTask",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 9fbee6e94333acb5cea5aca61ff7a379"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"google/nano-banana\",\n  \"callBackUrl\": \"https://your-domain.com/api/callback\",\n  \"input\": {\n    \"prompt\": \"{{ $json.output.image_prompt }}\",\n    \"output_format\": \"png\",\n    \"image_size\": \"1:1\"\n  },\n  \"image_urls\": [\n    \"{{ $('HTTP Request').item.json.data.url }}\"\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -368,
+        144
+      ],
+      "id": "6a67184b-c138-4e0b-b02c-902bbe84ff56",
+      "name": "create image"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -64,
+        144
+      ],
+      "id": "0e89b5fb-1ad7-4e46-b49b-27674b84f0b1",
+      "name": "Wait",
+      "webhookId": "2a5d9f61-4af7-41d7-8506-3bcd23c8a033"
+    },
+    {
+      "parameters": {
+        "url": "https://api.kie.ai/api/v1/jobs/recordInfo",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "taskId",
+              "value": "={{ $json.data.recordId }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 9fbee6e94333acb5cea5aca61ff7a379"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        192,
+        144
+      ],
+      "id": "497d0589-c43c-46e7-8c1c-8d04391a0731",
+      "name": "Get Image"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "create image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create image": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Get Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Image": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "db09f8d8-3054-40ba-a38c-32e6dbef80a8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e66b9e3973c4edf6b55b1b81fa1d1bc71c7c78ce4efb1d260e75428e6c64a933"
+  },
+  "id": "nOAFxgdp3vKFVhuR",
+  "tags": []
+}
